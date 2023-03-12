@@ -24,10 +24,9 @@ public:
     }
 
     explicit ArrayPtr(ArrayPtr&& ptr) noexcept {
-        if (raw_ptr_ != ptr.Get()) {
-            raw_ptr_ = ptr.Release();
-        }
+        std::exchange(raw_ptr_, ptr);
     }
+    
     ArrayPtr& operator=(ArrayPtr&& other) {
         std::swap(raw_ptr_, other.raw_ptr_);
         return  *this;
