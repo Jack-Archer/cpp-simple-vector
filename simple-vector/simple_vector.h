@@ -104,7 +104,9 @@ public:
     }
 
     Type& At(size_t index) {
-        assert(index > size_);
+         if (index >= GetSize()) { 
+            throw std::out_of_range("Error: incorrect index"); 
+        } 
         return elements_[index];
     }
 
@@ -173,52 +175,51 @@ public:
     
     
     Iterator Insert(ConstIterator pos, const Type& value) {
-        if (pos >= begin() && pos < end()) {
-            auto dist = std::distance(cbegin(), pos);
-            if(dist < 0 || dist > (long int)size_) {
-                throw std::out_of_range("Error: incorrect pos");
-            }
-            if (IsEmpty()){
-                PushBack(value);
-                return begin();
-            }
+        assert(pos >= begin() || pos < end());
+        auto dist = std::distance(cbegin(), pos);
+        if(dist < 0 || dist > (long int)size_) {
+            throw std::out_of_range("Error: incorrect pos");
+        }
+        if (IsEmpty()){
+            PushBack(value);
+            return begin();
+        }
 
-            if (size_ == capacity_) {
-                SimpleVector<Type> temp(size_ << 1);
-                std::copy(begin(), begin() + dist, temp.begin());
-                temp[dist] = value;
-                std::copy(begin() + (dist), end(), temp.begin() + (dist + 1));
-                temp.size_ = size_ + 1;
-                swap(temp);
-                return (begin() + dist);
-            }
-
-            std::copy_backward((Iterator)pos, end(), end() + 1);
-            elements_[dist] = value;
-            ++size_;
+        if (size_ == capacity_) {
+            SimpleVector<Type> temp(size_ << 1);
+            std::copy(begin(), begin() + dist, temp.begin());
+            temp[dist] = value;
+            std::copy(begin() + (dist), end(), temp.begin() + (dist + 1));
+            temp.size_ = size_ + 1;
+            swap(temp);
             return (begin() + dist);
         }
-        return end();
+
+        std::copy_backward((Iterator)pos, end(), end() + 1);
+        elements_[dist] = value;
+        ++size_;
+        return (begin() + dist);
     }
     
     Iterator Insert(ConstIterator pos, Type&& value) {
-            auto dist = std::distance(cbegin(), pos);
-            if(dist < 0 || dist > (long int)size_) {
-                throw std::out_of_range("Error: incorrect pos");
-            }
-            if (IsEmpty()){
-                PushBack(std::move(value));
-                return begin();
-            }
+        assert(pos >= begin() || pos < end());
+        auto dist = std::distance(cbegin(), pos);
+        if(dist < 0 || dist > (long int)size_) {
+            throw std::out_of_range("Error: incorrect pos");
+        }
+        if (IsEmpty()){
+           PushBack(std::move(value));
+           return begin();
+        }
 
-            if (size_ == capacity_) {
-                SimpleVector<Type> temp(size_ << 1);
-                std::move(begin(), begin() + dist, temp.begin());
-                temp[dist] = std::move(value);
-                std::move(begin() + (dist), end(), temp.begin() + (dist + 1));
-                temp.size_ = size_ + 1;
-                swap(temp);
-                return (begin() + dist);
+        if (size_ == capacity_) {
+            SimpleVector<Type> temp(size_ << 1);
+            std::move(begin(), begin() + dist, temp.begin());
+            temp[dist] = std::move(value);
+            std::move(begin() + (dist), end(), temp.begin() + (dist + 1));
+            temp.size_ = size_ + 1;
+            swap(temp);
+            return (begin() + dist);
             }
 
             std::move_backward((Iterator)pos, end(), end() + 1);
@@ -234,12 +235,10 @@ public:
     }
     
     Iterator Erase(ConstIterator pos) {
-    if (pos >= begin() && pos < end()) {
+         assert(pos >= begin() || pos < end());
         std::move((Iterator)pos + 1, end(), (Iterator)pos);
         --size_;
         return (Iterator)pos;
-    }
-    return end();
     }
     
     void swap(SimpleVector& other) noexcept {
@@ -273,21 +272,21 @@ public:
     }
 
     ConstIterator begin() const noexcept {
-        return &elements_[0];
+        return elements_.Get();
     }
 
     ConstIterator end() const noexcept {
-        return &elements_[size_];
+        return (elements_.Get() + size_);
     }
 
 
     ConstIterator cbegin() const noexcept {
-        return &elements_[0];
+        return elements_.Get();
     }
 
 
     ConstIterator cend() const noexcept {
-        return &elements_[size_];
+        return (elements_.Get() + size_);
     }
     
     private:
